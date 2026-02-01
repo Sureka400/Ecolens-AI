@@ -1,10 +1,9 @@
 import { motion } from "motion/react";
-import { Lightbulb, Flame, Car, Recycle, Wind, TreePine, ChevronLeft, ChevronRight } from "lucide-react";
+import { Lightbulb, Flame, Car, Recycle, Wind, TreePine, ChevronLeft, ChevronRight, Droplets, Thermometer, Shield } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Action {
-  icon: React.ElementType;
   title: string;
   why: string;
   impact: string;
@@ -12,59 +11,44 @@ interface Action {
   color: string;
 }
 
-export function MicroActions() {
+export function MicroActions({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lon?: number }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [actions, setActions] = useState<Action[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const actions: Action[] = [
-    {
-      icon: Flame,
-      title: "Avoid Open Waste Burning Today",
-      why: "Burning waste releases PM2.5 particles that worsen air quality",
-      impact: "Reduces local PM2.5 by ~7%",
-      difficulty: "Easy",
-      color: "#FF5252",
-    },
-    {
-      icon: Car,
-      title: "Carpool or Use Public Transport",
-      why: "Vehicle emissions are a major contributor to urban air pollution",
-      impact: "Reduces CO2 by ~2kg per trip",
-      difficulty: "Medium",
-      color: "#00B0FF",
-    },
-    {
-      icon: Recycle,
-      title: "Separate Recyclables Today",
-      why: "Proper waste management reduces landfill emissions and pollution",
-      impact: "Prevents 1.5kg waste from landfills",
-      difficulty: "Easy",
-      color: "#00E676",
-    },
-    {
-      icon: TreePine,
-      title: "Plant a Tree or Support Green Spaces",
-      why: "Trees absorb pollutants and produce oxygen, improving air quality",
-      impact: "Absorbs ~22kg CO2 annually",
-      difficulty: "Medium",
-      color: "#00E676",
-    },
-    {
-      icon: Wind,
-      title: "Limit Outdoor Exercise 6-9 AM",
-      why: "Pollution peaks during morning traffic hours",
-      impact: "Reduces respiratory exposure",
-      difficulty: "Easy",
-      color: "#FFC107",
-    },
-    {
-      icon: Lightbulb,
-      title: "Switch to LED Lighting",
-      why: "Reduces energy consumption and power plant emissions",
-      impact: "Saves ~80% energy vs traditional bulbs",
-      difficulty: "Easy",
-      color: "#00B0FF",
-    },
-  ];
+  const iconMap: { [key: string]: React.ElementType } = {
+    "Wear N95 masks outdoors": Wind,
+    "Use HEPA air purifiers": Shield,
+    "Avoid heavy traffic areas": Car,
+    "Use water filtration": Droplets,
+    "Stay hydrated and seek shade": Thermometer,
+    "Join local cleanup drives": Recycle,
+    "Install LED Lighting": Lightbulb,
+    "Separate Recyclables": Recycle,
+    "Support Green Spaces": TreePine,
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8000/api/insights?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setActions(data.action_plan);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching actions:", err);
+        setLoading(false);
+      });
+  }, [lat, lon]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00E676]"></div>
+      </div>
+    );
+  }
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % Math.max(1, actions.length - 2));
@@ -133,7 +117,10 @@ export function MicroActions() {
                           border: `1px solid ${action.color}40`,
                         }}
                       >
-                        <action.icon className="w-6 h-6" style={{ color: action.color }} />
+                        {(() => {
+                          const Icon = iconMap[action.title] || Lightbulb;
+                          return <Icon className="w-6 h-6" style={{ color: action.color }} />;
+                        })()}
                       </div>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${

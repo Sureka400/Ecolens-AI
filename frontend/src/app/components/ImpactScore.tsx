@@ -1,34 +1,54 @@
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Award, Heart, Leaf, Users } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
 
-export function ImpactScore() {
-  const score = 72;
-  const maxScore = 100;
+interface ScoreComponent {
+  label: string;
+  value: number;
+  color: string;
+  description: string;
+}
 
-  const components = [
-    {
-      icon: Heart,
-      label: "Health Impact",
-      value: 68,
-      color: "#FF5252",
-      description: "Respiratory health improvement potential",
-    },
-    {
-      icon: Leaf,
-      label: "Environmental Recovery",
-      value: 78,
-      color: "#00E676",
-      description: "Ecosystem restoration progress",
-    },
-    {
-      icon: Users,
-      label: "Community Benefit",
-      value: 70,
-      color: "#00B0FF",
-      description: "Collective well-being improvement",
-    },
-  ];
+interface ImpactScoreData {
+  score: number;
+  maxScore: number;
+  components: ScoreComponent[];
+}
+
+export function ImpactScore({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lon?: number }) {
+  const [data, setData] = useState<ImpactScoreData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const iconMap: { [key: string]: React.ElementType } = {
+    "Health Impact": Heart,
+    "Environmental Recovery": Leaf,
+    "Community Benefit": Users,
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8000/api/impact-score?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching impact score:", err);
+        setLoading(false);
+      });
+  }, [lat, lon]);
+
+  if (loading || !data) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00E676]"></div>
+      </div>
+    );
+  }
+
+  const { score, maxScore, components } = data;
 
   return (
     <section className="py-20 px-6">
@@ -149,7 +169,10 @@ export function ImpactScore() {
                             border: `1px solid ${component.color}40`,
                           }}
                         >
-                          <component.icon className="w-5 h-5" style={{ color: component.color }} />
+                          {(() => {
+                            const Icon = iconMap[component.label] || Award;
+                            return <Icon className="w-5 h-5" style={{ color: component.color }} />;
+                          })()}
                         </div>
                         <div>
                           <p className="font-semibold text-white text-sm">{component.label}</p>

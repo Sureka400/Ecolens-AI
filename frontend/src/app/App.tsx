@@ -19,10 +19,54 @@ import {
   Lightbulb, 
   Target,
   BookOpen,
-  Sparkles 
+  Sparkles,
+  Download,
+  Loader2
 } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
 
 export default function App() {
+  const [location, setLocation] = useState({ lat: 51.5074, lon: -0.1278, name: "London, UK" });
+  const [analyzing, setAnalyzing] = useState(false);
+  const [reportId, setReportId] = useState<number | null>(null);
+
+  const handleLocationChange = (newLocation: { lat: number, lon: number, name: string }) => {
+    setLocation(newLocation);
+    setReportId(null); // Reset report when location changes
+  };
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    try {
+      const response = await fetch("http://localhost:8000/api/report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lat: location.lat,
+          lon: location.lon,
+          name: location.name,
+        }),
+      });
+      const data = await response.json();
+      setReportId(data.id);
+      // Automatically switch to AI Insights tab to show the results
+      const tabsTrigger = document.querySelector('[value="ai-insights"]') as HTMLButtonElement;
+      if (tabsTrigger) tabsTrigger.click();
+    } catch (error) {
+      console.error("Error analyzing environment:", error);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (reportId) {
+      window.open(`http://localhost:8000/api/reports/${reportId}/download`, "_blank");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0F14] dark">
       {/* Header */}
@@ -40,8 +84,23 @@ export default function App() {
                 <p className="text-xs text-gray-400">Making Invisible Pollution Visible</p>
               </div>
             </div>
-            <div className="text-sm text-gray-400">
-              Predict · Explain · Act
+            <div className="flex items-center gap-6">
+              {reportId && (
+                <Button 
+                  onClick={handleDownload}
+                  variant="outline"
+                  size="sm"
+                  className="border-[#00E676]/30 text-[#00E676] hover:bg-[#00E676]/10 gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Report
+                </Button>
+              )}
+              <div className="flex flex-col items-end">
+                <div className="text-sm text-gray-400">
+                  Predict · Explain · Act
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -49,7 +108,7 @@ export default function App() {
 
       {/* Main Content with Tabs */}
       <main className="container mx-auto px-6 py-8">
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs defaultValue="map" className="w-full">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2 bg-[#131A22] p-2 mb-8 h-auto">
             <TabsTrigger 
               value="overview" 
@@ -100,63 +159,62 @@ export default function App() {
               <Target className="w-4 h-4" />
               <span className="hidden sm:inline">Impact</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="learn" 
-              className="flex items-center gap-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0B0F14] text-gray-400 py-3"
-            >
-              <BookOpen className="w-4 h-4" />
-              <span className="hidden sm:inline">Learn</span>
-            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-0">
-            <HeroSection />
-            <LocationInput />
+            <HeroSection onAnalyze={handleAnalyze} />
+            <div className="flex justify-center -mt-10 mb-20">
+              {analyzing && (
+                <div className="flex items-center gap-2 text-[#00E676] animate-pulse">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>AI is analyzing your environment...</span>
+                </div>
+              )}
+            </div>
+            <LocationInput 
+              onLocationChange={handleLocationChange} 
+              onAnalyze={handleAnalyze} 
+            />
           </TabsContent>
 
           {/* Map Tab */}
           <TabsContent value="map" className="mt-0">
-            <MapIntelligence />
+            <MapIntelligence lat={location.lat} lon={location.lon} name={location.name} />
           </TabsContent>
 
           {/* Snapshot Tab */}
           <TabsContent value="snapshot" className="mt-0">
-            <EnvironmentalSnapshot />
+            <EnvironmentalSnapshot lat={location.lat} lon={location.lon} />
           </TabsContent>
 
           {/* AI Insights Tab */}
           <TabsContent value="ai-insights" className="mt-0">
-            <AIImpactTranslation />
+            <AIImpactTranslation lat={location.lat} lon={location.lon} />
           </TabsContent>
 
           {/* Predictions Tab */}
           <TabsContent value="predictions" className="mt-0">
-            <FuturePrediction />
+            <FuturePrediction lat={location.lat} lon={location.lon} />
           </TabsContent>
 
           {/* Actions Tab */}
           <TabsContent value="actions" className="mt-0">
-            <MicroActions />
+            <MicroActions lat={location.lat} lon={location.lon} />
             <div className="mt-12">
-              <ImpactSimulation />
+              <ImpactSimulation lat={location.lat} lon={location.lon} />
             </div>
           </TabsContent>
 
           {/* Impact Tab */}
           <TabsContent value="impact" className="mt-0">
-            <ImpactScore />
-          </TabsContent>
-
-          {/* Learn Tab */}
-          <TabsContent value="learn" className="mt-0">
-            <EducationPanel />
+            <ImpactScore lat={location.lat} lon={location.lon} />
           </TabsContent>
         </Tabs>
       </main>
 
       {/* Footer CTA */}
-      <FinalCTA />
+      <FinalCTA locationName={location.name} />
     </div>
   );
 }

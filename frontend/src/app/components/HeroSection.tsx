@@ -1,8 +1,24 @@
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Globe2, Sparkles } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
-export function HeroSection() {
+interface Overview {
+  title: string;
+  subtitle: string;
+  tagline: string;
+}
+
+export function HeroSection({ onAnalyze }: { onAnalyze?: () => void }) {
+  const [overview, setOverview] = useState<Overview | null>(null);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/overview")
+      .then((res) => res.json())
+      .then((data) => setOverview(data))
+      .catch((err) => console.error("Error fetching overview:", err));
+  }, []);
+
   return (
     <section className="relative py-20 flex items-center justify-center overflow-hidden">
       {/* Animated background particles */}
@@ -48,18 +64,18 @@ export function HeroSection() {
             </motion.div>
             
             <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
-              <span className="text-white">Environmental Intelligence</span>
+              <span className="text-white">{overview?.title || "Environmental Intelligence"}</span>
             </h1>
           </div>
 
           <p className="text-xl lg:text-2xl text-gray-300 font-light tracking-wide">
-            Making Invisible Pollution <span className="text-[#00B0FF]">Visible</span>
+            {overview?.subtitle || "Making Invisible Pollution Visible"}
           </p>
 
           <div className="flex items-center gap-4 pt-4">
             <div className="h-px flex-1 bg-gradient-to-r from-[#00E676] to-transparent" />
             <p className="text-gray-400 tracking-widest uppercase text-sm">
-              Predict · Explain · Act
+              {overview?.tagline || "Predict · Explain · Act"}
             </p>
             <div className="h-px flex-1 bg-gradient-to-l from-[#00E676] to-transparent" />
           </div>
@@ -72,6 +88,7 @@ export function HeroSection() {
           >
             <Button
               size="lg"
+              onClick={onAnalyze}
               className="bg-[#00E676] text-[#0B0F14] hover:bg-[#00E676]/90 px-8 py-6 text-lg font-semibold shadow-lg shadow-[#00E676]/20 hover:shadow-[#00E676]/40 transition-all duration-300"
             >
               Analyze My Environment

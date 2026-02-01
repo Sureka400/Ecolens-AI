@@ -1,24 +1,43 @@
 import { motion, AnimatePresence } from "motion/react";
 import { ToggleLeft, ToggleRight, TrendingDown } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export function ImpactSimulation() {
+interface SimulationData {
+  currentData: { category: string, value: number }[];
+  improvedData: { category: string, value: number }[];
+  reductionPercentages: { [key: string]: number };
+}
+
+export function ImpactSimulation({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lon?: number }) {
   const [actionsEnabled, setActionsEnabled] = useState(false);
+  const [data, setData] = useState<SimulationData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const currentData = [
-    { category: "Air Quality", value: 78 },
-    { category: "Water Safety", value: 62 },
-    { category: "Waste", value: 68 },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8000/api/impact-simulation?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching simulation data:", err);
+        setLoading(false);
+      });
+  }, [lat, lon]);
 
-  const improvedData = [
-    { category: "Air Quality", value: 45 },
-    { category: "Water Safety", value: 38 },
-    { category: "Waste", value: 32 },
-  ];
+  if (loading || !data) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00E676]"></div>
+      </div>
+    );
+  }
 
+  const { currentData, improvedData, reductionPercentages } = data;
   const displayData = actionsEnabled ? improvedData : currentData;
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -133,32 +152,16 @@ export function ImpactSimulation() {
               >
                 {actionsEnabled ? (
                   <>
-                    <div className="p-4 bg-[#00E676]/10 rounded-lg border border-[#00E676]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="w-5 h-5 text-[#00E676]" />
-                        <p className="text-sm font-medium text-[#00E676]">Air Quality</p>
+                    {Object.entries(reductionPercentages).map(([category, reduction]) => (
+                      <div key={category} className="p-4 bg-[#00E676]/10 rounded-lg border border-[#00E676]/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingDown className="w-5 h-5 text-[#00E676]" />
+                          <p className="text-sm font-medium text-[#00E676]">{category}</p>
+                        </div>
+                        <p className="text-2xl font-bold text-[#00E676]">-{reduction}%</p>
+                        <p className="text-xs text-gray-400 mt-1">Risk reduction</p>
                       </div>
-                      <p className="text-2xl font-bold text-[#00E676]">-42%</p>
-                      <p className="text-xs text-gray-400 mt-1">Risk reduction</p>
-                    </div>
-
-                    <div className="p-4 bg-[#00E676]/10 rounded-lg border border-[#00E676]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="w-5 h-5 text-[#00E676]" />
-                        <p className="text-sm font-medium text-[#00E676]">Water Safety</p>
-                      </div>
-                      <p className="text-2xl font-bold text-[#00E676]">-39%</p>
-                      <p className="text-xs text-gray-400 mt-1">Risk reduction</p>
-                    </div>
-
-                    <div className="p-4 bg-[#00E676]/10 rounded-lg border border-[#00E676]/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="w-5 h-5 text-[#00E676]" />
-                        <p className="text-sm font-medium text-[#00E676]">Waste Impact</p>
-                      </div>
-                      <p className="text-2xl font-bold text-[#00E676]">-53%</p>
-                      <p className="text-xs text-gray-400 mt-1">Risk reduction</p>
-                    </div>
+                    ))}
                   </>
                 ) : (
                   <>

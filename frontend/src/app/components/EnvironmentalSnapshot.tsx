@@ -1,14 +1,18 @@
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Wind, Droplets, Thermometer, Trash2 } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
 
-interface MetricCardProps {
-  icon: React.ElementType;
+interface Metric {
   title: string;
   risk: "low" | "moderate" | "high";
   description: string;
   value: number;
   color: string;
+}
+
+interface MetricCardProps extends Metric {
+  icon: React.ElementType;
   delay: number;
 }
 
@@ -111,41 +115,38 @@ function MetricCard({ icon: Icon, title, risk, description, value, color, delay 
   );
 }
 
-export function EnvironmentalSnapshot() {
-  const metrics = [
-    {
-      icon: Wind,
-      title: "Air Quality",
-      risk: "high" as const,
-      description: "Unsafe for sensitive groups. PM2.5 levels exceed safe limits.",
-      value: 78,
-      color: "#FF5252",
-    },
-    {
-      icon: Droplets,
-      title: "Water Safety",
-      risk: "moderate" as const,
-      description: "Some contaminants detected. Filtration recommended.",
-      value: 62,
-      color: "#00B0FF",
-    },
-    {
-      icon: Thermometer,
-      title: "Climate Stress",
-      risk: "moderate" as const,
-      description: "Temperature variations may impact vulnerable populations.",
-      value: 55,
-      color: "#FFC107",
-    },
-    {
-      icon: Trash2,
-      title: "Waste Pressure",
-      risk: "low" as const,
-      description: "Waste management systems operating effectively.",
-      value: 32,
-      color: "#00E676",
-    },
-  ];
+export function EnvironmentalSnapshot({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lon?: number }) {
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const iconMap: { [key: string]: React.ElementType } = {
+    "Air Quality": Wind,
+    "Water Safety": Droplets,
+    "Climate Stress": Thermometer,
+    "Waste Pressure": Trash2,
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8000/api/snapshot?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setMetrics(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching snapshot:", err);
+        setLoading(false);
+      });
+  }, [lat, lon]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00E676]"></div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-20 px-6 bg-gradient-to-b from-[#0B0F14] to-[#0B0F14]">
@@ -163,7 +164,12 @@ export function EnvironmentalSnapshot() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {metrics.map((metric, index) => (
-            <MetricCard key={metric.title} {...metric} delay={index * 0.1} />
+            <MetricCard
+              key={metric.title}
+              {...metric}
+              icon={iconMap[metric.title] || Wind}
+              delay={index * 0.1}
+            />
           ))}
         </div>
       </div>

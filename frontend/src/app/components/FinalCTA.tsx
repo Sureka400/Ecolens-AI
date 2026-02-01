@@ -1,8 +1,40 @@
 import { motion } from "motion/react";
-import { ArrowRight, Github, Globe } from "lucide-react";
+import { ArrowRight, Github, Globe, CheckCircle2 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { useState } from "react";
 
-export function FinalCTA() {
+interface FinalCTAProps {
+  locationName: string;
+}
+
+export function FinalCTA({ locationName }: FinalCTAProps) {
+  const [email, setEmail] = useState("");
+  const [joined, setJoined] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleJoin = async () => {
+    if (!email) return;
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:8000/api/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (response.ok) {
+        setJoined(true);
+      }
+    } catch (error) {
+      console.error("Error joining climate action:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGithubClick = () => {
+    window.open("https://github.com/Sureka400/Ecolens-AI", "_blank");
+  };
+
   return (
     <section className="relative py-32 px-6 overflow-hidden">
       {/* Gradient background */}
@@ -48,10 +80,10 @@ export function FinalCTA() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-4xl lg:text-5xl font-bold text-white leading-tight"
             >
-              Sustainability starts when people{" "}
-              <span className="text-[#00E676]">understand impact</span>
+              Sustainability starts when <span className="text-[#00E676]">{locationName}</span>{" "}
+              <span className="text-[#00E676]">understands impact</span>
               <br />
-              — and know{" "}
+              — and knows{" "}
               <span className="text-[#00B0FF]">what to do next</span>
             </motion.h2>
 
@@ -74,17 +106,40 @@ export function FinalCTA() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
           >
-            <Button
-              size="lg"
-              className="bg-[#00E676] text-[#0B0F14] hover:bg-[#00E676]/90 px-8 py-6 text-lg font-semibold shadow-lg shadow-[#00E676]/30 hover:shadow-[#00E676]/50 transition-all duration-300 group"
-            >
-              Join the Climate Action
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            {!joined ? (
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-lg">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 w-full bg-[#131A22] border border-[#00E676]/30 rounded-lg px-6 py-4 text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                />
+                <Button
+                  size="lg"
+                  onClick={handleJoin}
+                  disabled={loading || !email}
+                  className="bg-[#00E676] text-[#0B0F14] hover:bg-[#00E676]/90 px-8 py-6 text-lg font-semibold shadow-lg shadow-[#00E676]/30 hover:shadow-[#00E676]/50 transition-all duration-300 group whitespace-nowrap"
+                >
+                  {loading ? "Joining..." : "Join Climate Action"}
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center gap-3 px-8 py-6 bg-[#00E676]/10 border border-[#00E676] rounded-xl text-[#00E676] font-semibold"
+              >
+                <CheckCircle2 className="w-6 h-6" />
+                You've joined the movement!
+              </motion.div>
+            )}
 
             <Button
               size="lg"
               variant="outline"
+              onClick={handleGithubClick}
               className="border-[#00E676]/30 bg-transparent hover:bg-[#00E676]/10 hover:border-[#00E676] text-white px-8 py-6 text-lg transition-all duration-300"
             >
               <Github className="mr-2 w-5 h-5" />

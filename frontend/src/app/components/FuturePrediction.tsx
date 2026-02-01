@@ -1,19 +1,32 @@
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { TrendingUp, AlertTriangle } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-export function FuturePrediction() {
-  // Mock prediction data for next 7 days
-  const predictionData = [
-    { day: "Today", current: 78, withAction: 78 },
-    { day: "Day 2", current: 82, withAction: 74 },
-    { day: "Day 3", current: 85, withAction: 68 },
-    { day: "Day 4", current: 88, withAction: 62 },
-    { day: "Day 5", current: 90, withAction: 58 },
-    { day: "Day 6", current: 92, withAction: 52 },
-    { day: "Day 7", current: 95, withAction: 48 },
-  ];
+interface ForecastItem {
+  day: string;
+  current: number;
+  withAction: number;
+}
+
+export function FuturePrediction({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lon?: number }) {
+  const [predictionData, setPredictionData] = useState<ForecastItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8000/api/forecast?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPredictionData(data.forecast);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching forecast:", err);
+        setLoading(false);
+      });
+  }, [lat, lon]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -59,7 +72,12 @@ export function FuturePrediction() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="p-6 bg-[#131A22] border-[#00E676]/20">
+            <Card className="p-6 bg-[#131A22] border-[#00E676]/20 relative min-h-[400px]">
+              {loading && (
+                <div className="absolute inset-0 flex justify-center items-center bg-[#131A22]/50 z-10 rounded-lg">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00E676]"></div>
+                </div>
+              )}
               <h3 className="text-xl font-semibold text-white mb-6">Pollution Trajectory</h3>
               
               <ResponsiveContainer width="100%" height={300}>
@@ -115,7 +133,12 @@ export function FuturePrediction() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="p-6 bg-[#131A22] border-[#00E676]/20">
+            <Card className="p-6 bg-[#131A22] border-[#00E676]/20 relative min-h-[400px]">
+              {loading && (
+                <div className="absolute inset-0 flex justify-center items-center bg-[#131A22]/50 z-10 rounded-lg">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00E676]"></div>
+                </div>
+              )}
               <h3 className="text-xl font-semibold text-white mb-6">Impact of Action</h3>
               
               <ResponsiveContainer width="100%" height={300}>
