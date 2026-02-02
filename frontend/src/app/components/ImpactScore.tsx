@@ -28,7 +28,7 @@ export function ImpactScore({ lat = 51.5074, lon = -0.1278 }: { lat?: number, lo
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/impact-score?lat=${lat}&lon=${lon}`)
+    fetch(`/api/impact-score?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setData(data);

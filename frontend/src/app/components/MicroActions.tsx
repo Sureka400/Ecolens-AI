@@ -30,7 +30,7 @@ export function MicroActions({ lat = 51.5074, lon = -0.1278 }: { lat?: number, l
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/insights?lat=${lat}&lon=${lon}`)
+    fetch(`/api/insights?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setActions(data.action_plan);

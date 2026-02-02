@@ -128,7 +128,7 @@ export function EnvironmentalSnapshot({ lat = 51.5074, lon = -0.1278 }: { lat?: 
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/snapshot?lat=${lat}&lon=${lon}`)
+    fetch(`/api/snapshot?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setMetrics(data);

@@ -16,7 +16,7 @@ export function FuturePrediction({ lat = 51.5074, lon = -0.1278 }: { lat?: numbe
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/forecast?lat=${lat}&lon=${lon}`)
+    fetch(`/api/forecast?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setPredictionData(data.forecast);

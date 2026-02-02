@@ -13,7 +13,7 @@ export function HeroSection({ onAnalyze }: { onAnalyze?: () => void }) {
   const [overview, setOverview] = useState<Overview | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/overview")
+    fetch("/api/overview")
       .then((res) => res.json())
       .then((data) => setOverview(data))
       .catch((err) => console.error("Error fetching overview:", err));

@@ -17,7 +17,7 @@ export function ImpactSimulation({ lat = 51.5074, lon = -0.1278 }: { lat?: numbe
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/impact-simulation?lat=${lat}&lon=${lon}`)
+    fetch(`/api/impact-simulation?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setData(data);

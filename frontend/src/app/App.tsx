@@ -38,7 +38,7 @@ export default function App() {
   const handleAnalyze = async () => {
     setAnalyzing(true);
     try {
-      const response = await fetch("http://localhost:8000/api/report", {
+      const response = await fetch("/api/report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +63,7 @@ export default function App() {
 
   const handleDownload = () => {
     if (reportId) {
-      window.open(`http://localhost:8000/api/reports/${reportId}/download`, "_blank");
+      window.open(`/api/reports/${reportId}/download`, "_blank");
     }
   };
 

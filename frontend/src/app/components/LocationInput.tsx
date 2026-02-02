@@ -18,7 +18,7 @@ export function LocationInput({ onLocationChange, onAnalyze }: LocationInputProp
     if (!query) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/geocode?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.lat !== undefined && data.lon !== undefined) {
         onLocationChange({

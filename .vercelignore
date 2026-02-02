@@ -1,0 +1,14 @@
+node_modules
+frontend/node_modules
+backend/__pycache__
+*.pyc
+.venv
+env
+venv
+.git
+.zencoder
+.zenflow
+dist
+frontend/dist
+ecolens.db
+backend/ecolens.db

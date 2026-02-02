@@ -65,7 +65,7 @@ export function MapIntelligence({ lat = 51.5074, lon = -0.1278, name = "Selected
     setLoading(true);
     setError(null);
     
-    const fetchUrl = `http://localhost:8000/api/map?lat=${lat}&lon=${lon}&layer=${activeLayer}`;
+    const fetchUrl = `/api/map?lat=${lat}&lon=${lon}&layer=${activeLayer}`;
     
     fetch(fetchUrl)
       .then((res) => {

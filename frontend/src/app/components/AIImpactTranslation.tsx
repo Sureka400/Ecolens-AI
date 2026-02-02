@@ -23,7 +23,7 @@ export function AIImpactTranslation({ lat = 51.5074, lon = -0.1278 }: { lat?: nu
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/insights?lat=${lat}&lon=${lon}`)
+    fetch(`/api/insights?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         setData(data);
