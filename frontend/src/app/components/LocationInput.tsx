@@ -7,31 +7,29 @@ import { Card } from "@/app/components/ui/card";
 
 interface LocationInputProps {
   onLocationChange: (location: { lat: number, lon: number, name: string }) => void;
-  onAnalyze?: () => void;
+  onAnalyze?: (location: { lat: number, lon: number, name: string }) => void;
 }
 
 export function LocationInput({ onLocationChange, onAnalyze }: LocationInputProps) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (triggerAnalyze = false) => {
+  const handleSearch = async (triggerAnalyze: any = false) => {
     if (!query) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.lat !== undefined && data.lon !== undefined) {
-        onLocationChange({
+        const newLoc = {
           lat: data.lat,
           lon: data.lon,
           name: data.name || query
-        });
+        };
+        onLocationChange(newLoc);
 
         if (triggerAnalyze && onAnalyze) {
-          // Small delay to ensure state update has propagated if needed
-          setTimeout(() => {
-            onAnalyze();
-          }, 100);
+          onAnalyze(newLoc);
         }
       }
     } catch (err) {
@@ -46,11 +44,15 @@ export function LocationInput({ onLocationChange, onAnalyze }: LocationInputProp
       setLoading(true);
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
-        onLocationChange({
+        const newLoc = {
           lat: latitude,
           lon: longitude,
-          name: `Custom Location (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`
-        });
+          name: `Current Location (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`
+        };
+        onLocationChange(newLoc);
+        if (onAnalyze) {
+          onAnalyze(newLoc);
+        }
         setLoading(false);
       }, (error) => {
         console.error("Geolocation error:", error);
@@ -84,12 +86,12 @@ export function LocationInput({ onLocationChange, onAnalyze }: LocationInputProp
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(true)}
                   placeholder="Enter your location (city, region, or coordinates)"
                   className="pl-12 pr-24 py-6 bg-[#0B0F14] border-[#00E676]/20 text-white placeholder:text-gray-500 focus:border-[#00E676] transition-colors"
                 />
                 <Button 
-                  onClick={handleSearch}
+                  onClick={() => handleSearch(true)}
                   disabled={loading}
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#00E676] text-[#0B0F14] hover:bg-[#00E676]/90 px-4 h-10"
                 >
@@ -122,7 +124,7 @@ export function LocationInput({ onLocationChange, onAnalyze }: LocationInputProp
 
               <Button
                 size="lg"
-                onClick={handleSearch}
+                onClick={() => handleSearch(true)}
                 disabled={loading}
                 className="w-full py-6 bg-[#00E676] text-[#0B0F14] hover:bg-[#00E676]/90 font-semibold shadow-lg shadow-[#00E676]/20 hover:shadow-[#00E676]/40 transition-all duration-300"
               >

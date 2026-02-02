@@ -135,7 +135,9 @@ async def download_report(report_id: int, db: Session = Depends(get_db)):
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    filename = f"ecolens_report_{report.location_name.replace(' ', '_')}_{report.id}.txt"
+    # Clean filename of special characters
+    safe_name = "".join([c if c.isalnum() or c in "._-" else "_" for c in report.location_name])
+    filename = f"ecolens_report_{safe_name}_{report.id}.txt"
     return Response(
         content=report.summary,
         media_type="text/plain",

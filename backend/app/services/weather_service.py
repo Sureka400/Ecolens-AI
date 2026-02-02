@@ -6,7 +6,7 @@ from typing import List, Dict
 class WeatherService:
     @staticmethod
     async def get_air_pollution(lat: float, lon: float) -> List[Dict]:
-        if not settings.OPENWEATHER_API_KEY:
+        if not settings.OPENWEATHER_API_KEY or "your_" in settings.OPENWEATHER_API_KEY:
             # Region-aware pseudo-AI logic
             # Tropical regions (near equator)
             if abs(lat) < 23.5:
@@ -85,7 +85,7 @@ class WeatherService:
 
     @staticmethod
     async def geocode(q: str) -> Dict:
-        if not settings.OPENWEATHER_API_KEY:
+        if not settings.OPENWEATHER_API_KEY or "your_" in settings.OPENWEATHER_API_KEY:
             # Handle direct coordinate input "lat, lon"
             try:
                 if "," in q:

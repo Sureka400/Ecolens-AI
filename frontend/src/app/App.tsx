@@ -35,8 +35,9 @@ export default function App() {
     setReportId(null); // Reset report when location changes
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (manualLocation?: { lat: number, lon: number, name: string }) => {
     setAnalyzing(true);
+    const targetLocation = manualLocation || location;
     try {
       const response = await fetch("/api/report", {
         method: "POST",
@@ -44,11 +45,12 @@ export default function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lat: location.lat,
-          lon: location.lon,
-          name: location.name,
+          lat: targetLocation.lat,
+          lon: targetLocation.lon,
+          name: targetLocation.name,
         }),
       });
+      if (!response.ok) throw new Error("Failed to generate report");
       const data = await response.json();
       setReportId(data.id);
       // Automatically switch to AI Insights tab to show the results
@@ -63,7 +65,13 @@ export default function App() {
 
   const handleDownload = () => {
     if (reportId) {
-      window.open(`/api/reports/${reportId}/download`, "_blank");
+      // Create a hidden anchor element to trigger the download
+      const link = document.createElement("a");
+      link.href = `/api/reports/${reportId}/download`;
+      link.setAttribute("download", `ecolens_report_${reportId}.txt`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
